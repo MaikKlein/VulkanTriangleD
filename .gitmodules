@@ -1,0 +1,3 @@
+[submodule "deps/ErupteD"]
+	path = deps/ErupteD
+	url = https://github.com/MaikKlein/ErupteD.git
