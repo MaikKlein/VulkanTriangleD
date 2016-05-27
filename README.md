@@ -12,6 +12,7 @@
 
 ```
 git clone https://github.com/MaikKlein/VulkanTriangleD.git
+cd VulkanTriangleD
 git submodule init
 git submodule update
 dub run
