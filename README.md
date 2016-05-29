@@ -12,6 +12,7 @@
 
 ```
 git clone https://github.com/MaikKlein/VulkanTriangleD.git
+cd VulkanTriangleD
 git submodule init
 git submodule update
 dub run
@@ -19,4 +20,8 @@ dub run
 
 ![Triangle](https://i.imgur.com/b1JRKdW.png)
 
+## A thanks to
 
+* [Api with no secrets](https://software.intel.com/en-us/articles/api-without-secrets-introduction-to-vulkan-part-1)
+* [Vulkan tutorial](http://av.dfki.de/~jhenriques/development.html)
+* [Vulkan examples](https://github.com/SaschaWillems/Vulkan)
