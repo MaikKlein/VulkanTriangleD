@@ -541,7 +541,7 @@ void main()
 
     foreach(index; iota(0, 32)){
         VkMemoryType memoryType = vkcontext.memoryProperties.memoryTypes[index];
-        if(memoryTypeBits & 1){
+        if(vertexMemoryTypeBits & 1){
             if((memoryType.propertyFlags & vertexDesiredMemoryFlags) is vertexDesiredMemoryFlags){
                 bufferAllocateInfo.memoryTypeIndex = index;
                 break;
