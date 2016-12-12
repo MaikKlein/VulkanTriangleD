@@ -148,7 +148,10 @@ void main()
         VkPhysicalDeviceProperties props;
 
         vkGetPhysicalDeviceProperties(device, &props);
-        if(props.deviceType is VkPhysicalDeviceType.VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU){
+        if(
+           props.deviceType is VkPhysicalDeviceType.VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU || 
+           props.deviceType is VkPhysicalDeviceType.VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
+           ){
             uint queueCount = 0;
             vkGetPhysicalDeviceQueueFamilyProperties(device, &queueCount, null);
             enforce(queueCount > 0);
