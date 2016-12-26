@@ -12,8 +12,8 @@ extern(System) VkBool32 MyDebugReportCallback(
     uint64_t                    object,
     size_t                      location,
     int32_t                     messageCode,
-    const char*                 pLayerPrefix,
-    const char*                 pMessage,
+    const (char)*                 pLayerPrefix,
+    const (char)*                 pMessage,
     void*                       pUserData) nothrow @nogc
 {
     import std.stdio;
@@ -131,8 +131,8 @@ void main()
                                                 VkStructureType.VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
                                                 null,
                                                 0,
-                                                sdlWindowInfo.info.x11.display,
-                                                sdlWindowInfo.info.x11.window
+                                                sdlWindowInfo.info.win.window,
+                                                sdlWindowInfo.info.win.window
     );
     enforceVk(vkCreateWin32SurfaceKHR(vkcontext.instance, &xlibInfo, null, &vkcontext.surface));
 
@@ -298,7 +298,7 @@ void main()
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapchainCreateInfo.presentMode = presentMode;
     swapchainCreateInfo.clipped = VK_TRUE;
-    swapchainCreateInfo.oldSwapchain = null;
+    swapchainCreateInfo.oldSwapchain = cast(ulong)null;
 
     enforceVk(vkCreateSwapchainKHR(vkcontext.logicalDevice, &swapchainCreateInfo, null, &vkcontext.swapchain));
 
@@ -570,10 +570,10 @@ void main()
     auto vertFile = File("vert.spv", "r");
     auto fragFile = File("frag.spv", "r");
 
-    char[] vertCode = new char[](vertFile.size);
+    char[] vertCode = new char[](cast(uint)vertFile.size);
     auto vertCodeSlice = vertFile.rawRead(vertCode);
 
-    char[] fragCode = new char[](fragFile.size);
+    char[] fragCode = new char[](cast(uint)fragFile.size);
     auto fragCodeSlice = fragFile.rawRead(fragCode);
 
     VkShaderModuleCreateInfo vertexShaderCreateInfo;
@@ -741,10 +741,10 @@ void main()
     pipelineCreateInfo.layout = vkcontext.pipelineLayout;
     pipelineCreateInfo.renderPass = vkcontext.renderPass;
     pipelineCreateInfo.subpass = 0;
-    pipelineCreateInfo.basePipelineHandle = null;
+    pipelineCreateInfo.basePipelineHandle = cast(ulong)null;
     pipelineCreateInfo.basePipelineIndex = 0;
 
-    enforceVk(vkCreateGraphicsPipelines(vkcontext.logicalDevice, null, 1, &pipelineCreateInfo, null, &vkcontext.pipeline));
+    enforceVk(vkCreateGraphicsPipelines(vkcontext.logicalDevice, cast(ulong)null, cast(uint)1, &pipelineCreateInfo, null, &vkcontext.pipeline));
 
     auto semaphoreCreateInfo = VkSemaphoreCreateInfo( VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, null, 0 );
     vkCreateSemaphore( vkcontext.logicalDevice, &semaphoreCreateInfo, null, &vkcontext.presentCompleteSemaphore );
@@ -763,7 +763,7 @@ void main()
         uint32_t nextImageIdx;
         vkAcquireNextImageKHR(
             vkcontext.logicalDevice, vkcontext.swapchain, ulong.max,
-            vkcontext.presentCompleteSemaphore, null, &nextImageIdx
+            vkcontext.presentCompleteSemaphore, cast(ulong)null, &nextImageIdx
         );
 
         vkBeginCommandBuffer( vkcontext.drawCmdBuffer, &beginInfo );
@@ -860,7 +860,7 @@ void main()
         renderSubmitInfo.pCommandBuffers = &vkcontext.drawCmdBuffer;
         renderSubmitInfo.signalSemaphoreCount = 1;
         renderSubmitInfo.pSignalSemaphores = &vkcontext.renderingCompleteSemaphore;
-        vkQueueSubmit( vkcontext.presentQueue, 1, &renderSubmitInfo, null );
+        vkQueueSubmit( vkcontext.presentQueue, 1, &renderSubmitInfo, cast(ulong)null );
         vkQueueWaitIdle(vkcontext.presentQueue);
 
         VkPresentInfoKHR presentInfo;

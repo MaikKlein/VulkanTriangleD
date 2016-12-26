@@ -6,10 +6,11 @@ authors "maik"
 
 configuration "windows" {
   platforms "windows"
-  version "VK_USE_PLATFORM_WIN32_KHR" 
+  versions "VK_USE_PLATFORM_WIN32_KHR" 
   subConfiguration "erupted" "with-derelict-loader"
   dependency "derelict-sdl2" version="~>2.0.0"
   dependency "erupted" version="~>1.4.9" 
+  targetType "executable"
 }
 
 configuration "linux" {
