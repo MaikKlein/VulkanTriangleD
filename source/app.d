@@ -127,14 +127,14 @@ void main()
     VkDebugReportCallbackEXT callback;
     enforceVk(vkCreateDebugReportCallbackEXT(vkcontext.instance, &debugcallbackCreateInfo, null, &callback));
 
-    auto xlibInfo = VkXlibSurfaceCreateInfoKHR(
-        VkStructureType.VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
-        null,
-        0,
-        sdlWindowInfo.info.x11.display,
-        sdlWindowInfo.info.x11.window
+    auto xlibInfo = VkWin32SurfaceCreateInfoKHR(
+                                                VkStructureType.VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+                                                null,
+                                                0,
+                                                sdlWindowInfo.info.x11.display,
+                                                sdlWindowInfo.info.x11.window
     );
-    enforceVk(vkCreateXlibSurfaceKHR(vkcontext.instance, &xlibInfo, null, &vkcontext.surface));
+    enforceVk(vkCreateWin32SurfaceKHR(vkcontext.instance, &xlibInfo, null, &vkcontext.surface));
 
     uint numOfDevices;
     enforceVk(vkEnumeratePhysicalDevices(vkcontext.instance, &numOfDevices, null));
