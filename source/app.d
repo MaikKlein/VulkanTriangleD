@@ -73,11 +73,22 @@ void main()
     appinfo.pApplicationName = "Breeze";
     appinfo.apiVersion = VK_MAKE_VERSION(1, 0, 2);
 
-    const(char*)[3] extensionNames = [
-        "VK_KHR_surface",
-        "VK_KHR_xlib_surface",
-        "VK_EXT_debug_report"
-    ];
+    version(linux) {
+      const(char*)[3] extensionNames = [
+                                        "VK_KHR_surface",
+                                        "VK_KHR_xlib_surface",
+                                        "VK_EXT_debug_report"
+                                        ];
+    }
+    else version(Windows) {
+      const(char*)[3] extensionNames = [
+                                        "VK_KHR_surface",
+                                        "VK_KHR_win32_surface",
+                                        "VK_EXT_debug_report"
+                                        ];
+    }
+    else
+      static assert(false, "Unsupported platform");
     uint extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(null, &extensionCount, null );
 
