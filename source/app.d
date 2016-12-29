@@ -73,19 +73,15 @@ void main()
     appinfo.pApplicationName = "Breeze";
     appinfo.apiVersion = VK_MAKE_VERSION(1, 0, 2);
 
+    const (char*)[] extensionNames = [
+                               "VK_KHR_surface",
+                               "VK_EXT_debug_report",
+                               ];
     version(linux) {
-      const(char*)[3] extensionNames = [
-                                        "VK_KHR_surface",
-                                        "VK_KHR_xlib_surface",
-                                        "VK_EXT_debug_report"
-                                        ];
+      extensionNames ~= "VK_KHR_xlib_surface";
     }
     else version(Windows) {
-      const(char*)[3] extensionNames = [
-                                        "VK_KHR_surface",
-                                        "VK_KHR_win32_surface",
-                                        "VK_EXT_debug_report"
-                                        ];
+      extensionNames ~= "VK_KHR_win32_surface";
     }
     else
       static assert(false, "Unsupported platform");
@@ -138,14 +134,30 @@ void main()
     VkDebugReportCallbackEXT callback;
     enforceVk(vkCreateDebugReportCallbackEXT(vkcontext.instance, &debugcallbackCreateInfo, null, &callback));
 
-    auto xlibInfo = VkWin32SurfaceCreateInfoKHR(
-                                                VkStructureType.VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-                                                null,
-                                                0,
-                                                sdlWindowInfo.info.win.window,
-                                                sdlWindowInfo.info.win.window
-    );
-    enforceVk(vkCreateWin32SurfaceKHR(vkcontext.instance, &xlibInfo, null, &vkcontext.surface));
+    version(linux)
+      {
+        
+        auto surfaceInfo = VkXlibSurfaceCreateInfoKHR(
+                                                       VkStructureType.VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+                                                       null,
+                                                       0,
+                                                       sdlWindowInfo.info.x11.display,
+                                                       sdlWindowInfo.info.x11.window
+                                                       );
+        enforceVk(vkCreateXlibSurfaceKHR(vkcontext.instance, &surfaceInfo, null, &vkcontext.surface));
+      }
+    else version(windows)
+    {
+        auto surfaceInfo = VkWin32SurfaceCreateInfoKHR(
+                                                       VkStructureType.VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+                                                       null,
+                                                       0,
+                                                       sdlWindowInfo.info.win.window,
+                                                       sdlWindowInfo.info.win.window
+                                                       );
+        enforceVk(vkCreateWin32SurfaceKHR(vkcontext.instance, &surfaceInfo, null, &vkcontext.surface));
+    }
+    
 
     uint numOfDevices;
     enforceVk(vkEnumeratePhysicalDevices(vkcontext.instance, &numOfDevices, null));
@@ -309,7 +321,7 @@ void main()
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapchainCreateInfo.presentMode = presentMode;
     swapchainCreateInfo.clipped = VK_TRUE;
-    swapchainCreateInfo.oldSwapchain = cast(ulong)null;
+    swapchainCreateInfo.oldSwapchain = null;
 
     enforceVk(vkCreateSwapchainKHR(vkcontext.logicalDevice, &swapchainCreateInfo, null, &vkcontext.swapchain));
 
@@ -752,10 +764,10 @@ void main()
     pipelineCreateInfo.layout = vkcontext.pipelineLayout;
     pipelineCreateInfo.renderPass = vkcontext.renderPass;
     pipelineCreateInfo.subpass = 0;
-    pipelineCreateInfo.basePipelineHandle = cast(ulong)null;
+    pipelineCreateInfo.basePipelineHandle = null;
     pipelineCreateInfo.basePipelineIndex = 0;
 
-    enforceVk(vkCreateGraphicsPipelines(vkcontext.logicalDevice, cast(ulong)null, cast(uint)1, &pipelineCreateInfo, null, &vkcontext.pipeline));
+    enforceVk(vkCreateGraphicsPipelines(vkcontext.logicalDevice, null, cast(uint)1, &pipelineCreateInfo, null, &vkcontext.pipeline));
 
     auto semaphoreCreateInfo = VkSemaphoreCreateInfo( VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, null, 0 );
     vkCreateSemaphore( vkcontext.logicalDevice, &semaphoreCreateInfo, null, &vkcontext.presentCompleteSemaphore );
@@ -774,7 +786,7 @@ void main()
         uint32_t nextImageIdx;
         vkAcquireNextImageKHR(
             vkcontext.logicalDevice, vkcontext.swapchain, ulong.max,
-            vkcontext.presentCompleteSemaphore, cast(ulong)null, &nextImageIdx
+            vkcontext.presentCompleteSemaphore, null, &nextImageIdx
         );
 
         vkBeginCommandBuffer( vkcontext.drawCmdBuffer, &beginInfo );
@@ -871,7 +883,7 @@ void main()
         renderSubmitInfo.pCommandBuffers = &vkcontext.drawCmdBuffer;
         renderSubmitInfo.signalSemaphoreCount = 1;
         renderSubmitInfo.pSignalSemaphores = &vkcontext.renderingCompleteSemaphore;
-        vkQueueSubmit( vkcontext.presentQueue, 1, &renderSubmitInfo, cast(ulong)null );
+        vkQueueSubmit( vkcontext.presentQueue, 1, &renderSubmitInfo, null );
         vkQueueWaitIdle(vkcontext.presentQueue);
 
         VkPresentInfoKHR presentInfo;

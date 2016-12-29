@@ -3,21 +3,21 @@ description "A minimal D application."
 copyright "Copyright © 2016, maik"
 authors "maik"
 
+dependency "derelict-sdl2" version="~>2.0.0"
+dependency "erupted" version="~>1.4.9" 
 
-configuration "windows" {
-  platforms "windows"
-  versions "VK_USE_PLATFORM_WIN32_KHR" 
-  subConfiguration "erupted" "with-derelict-loader"
-  dependency "derelict-sdl2" version="~>2.0.0"
-  dependency "erupted" version="~>1.4.9" 
-  targetType "executable"
-}
+// windows
+versions "VK_USE_PLATFORM_WIN32_KHR" platform="windows-x86_64"
+subConfiguration "erupted" "with-derelict-loader" platform="windows-x86_64"
 
-configuration "linux" {
-  platforms "linux"
-  subConfiguration "erupted" "dub-platform-xlib-derelict-loader"
-  libs"Xi" "pthread" "X11" "Xxf86vm" "Xrandr" "pthread" "GL" "GLU" "Xinerama" "Xcursor" platform="linux-x86_64"
-}
+// linux
+subConfiguration "erupted" "dub-platform-xlib-derelict-loader" platform="linux-x86_64"
+libs "Xi" "pthread" "X11" "Xxf86vm" "Xrandr" "pthread" "GL" "GLU" "Xinerama" "Xcursor" platform="linux-x86_64"
 
+targetType "executable"
 targetPath "./bin"
+
+configuration "desktop-app" {
+}
+
 
