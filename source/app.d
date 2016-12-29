@@ -12,8 +12,8 @@ extern(System) VkBool32 MyDebugReportCallback(
     uint64_t                    object,
     size_t                      location,
     int32_t                     messageCode,
-    const char*                 pLayerPrefix,
-    const char*                 pMessage,
+    const (char)*                 pLayerPrefix,
+    const (char)*                 pMessage,
     void*                       pUserData) nothrow @nogc
 {
     import std.stdio;
@@ -73,11 +73,18 @@ void main()
     appinfo.pApplicationName = "Breeze";
     appinfo.apiVersion = VK_MAKE_VERSION(1, 0, 2);
 
-    const(char*)[3] extensionNames = [
-        "VK_KHR_surface",
-        "VK_KHR_xlib_surface",
-        "VK_EXT_debug_report"
-    ];
+    const (char*)[] extensionNames = [
+                               "VK_KHR_surface",
+                               "VK_EXT_debug_report",
+                               ];
+    version(linux) {
+      extensionNames ~= "VK_KHR_xlib_surface";
+    }
+    else version(Windows) {
+      extensionNames ~= "VK_KHR_win32_surface";
+    }
+    else
+      static assert(false, "Unsupported platform");
     uint extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(null, &extensionCount, null );
 
@@ -127,14 +134,30 @@ void main()
     VkDebugReportCallbackEXT callback;
     enforceVk(vkCreateDebugReportCallbackEXT(vkcontext.instance, &debugcallbackCreateInfo, null, &callback));
 
-    auto xlibInfo = VkXlibSurfaceCreateInfoKHR(
-        VkStructureType.VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
-        null,
-        0,
-        sdlWindowInfo.info.x11.display,
-        sdlWindowInfo.info.x11.window
-    );
-    enforceVk(vkCreateXlibSurfaceKHR(vkcontext.instance, &xlibInfo, null, &vkcontext.surface));
+    version(linux)
+      {
+        
+        auto surfaceInfo = VkXlibSurfaceCreateInfoKHR(
+                                                       VkStructureType.VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+                                                       null,
+                                                       0,
+                                                       sdlWindowInfo.info.x11.display,
+                                                       sdlWindowInfo.info.x11.window
+                                                       );
+        enforceVk(vkCreateXlibSurfaceKHR(vkcontext.instance, &surfaceInfo, null, &vkcontext.surface));
+      }
+    else version(windows)
+    {
+        auto surfaceInfo = VkWin32SurfaceCreateInfoKHR(
+                                                       VkStructureType.VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+                                                       null,
+                                                       0,
+                                                       sdlWindowInfo.info.win.window,
+                                                       sdlWindowInfo.info.win.window
+                                                       );
+        enforceVk(vkCreateWin32SurfaceKHR(vkcontext.instance, &surfaceInfo, null, &vkcontext.surface));
+    }
+    
 
     uint numOfDevices;
     enforceVk(vkEnumeratePhysicalDevices(vkcontext.instance, &numOfDevices, null));
@@ -148,7 +171,10 @@ void main()
         VkPhysicalDeviceProperties props;
 
         vkGetPhysicalDeviceProperties(device, &props);
-        if(props.deviceType is VkPhysicalDeviceType.VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU){
+        if(
+           props.deviceType is VkPhysicalDeviceType.VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU || 
+           props.deviceType is VkPhysicalDeviceType.VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
+           ){
             uint queueCount = 0;
             vkGetPhysicalDeviceQueueFamilyProperties(device, &queueCount, null);
             enforce(queueCount > 0);
@@ -567,10 +593,10 @@ void main()
     auto vertFile = File("vert.spv", "r");
     auto fragFile = File("frag.spv", "r");
 
-    char[] vertCode = new char[](vertFile.size);
+    char[] vertCode = new char[](cast(uint)vertFile.size);
     auto vertCodeSlice = vertFile.rawRead(vertCode);
 
-    char[] fragCode = new char[](fragFile.size);
+    char[] fragCode = new char[](cast(uint)fragFile.size);
     auto fragCodeSlice = fragFile.rawRead(fragCode);
 
     VkShaderModuleCreateInfo vertexShaderCreateInfo;
@@ -741,7 +767,7 @@ void main()
     pipelineCreateInfo.basePipelineHandle = null;
     pipelineCreateInfo.basePipelineIndex = 0;
 
-    enforceVk(vkCreateGraphicsPipelines(vkcontext.logicalDevice, null, 1, &pipelineCreateInfo, null, &vkcontext.pipeline));
+    enforceVk(vkCreateGraphicsPipelines(vkcontext.logicalDevice, null, cast(uint)1, &pipelineCreateInfo, null, &vkcontext.pipeline));
 
     auto semaphoreCreateInfo = VkSemaphoreCreateInfo( VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, null, 0 );
     vkCreateSemaphore( vkcontext.logicalDevice, &semaphoreCreateInfo, null, &vkcontext.presentCompleteSemaphore );
